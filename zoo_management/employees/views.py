@@ -1,7 +1,7 @@
+
 from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
-from rest_framework.decorators import action
 from rest_framework.response import Response
 
 class EmployeeViewSet(viewsets.ViewSet):
@@ -31,6 +31,7 @@ class EmployeeViewSet(viewsets.ViewSet):
                             'position': openapi.Schema(type=openapi.TYPE_STRING),
                             'department': openapi.Schema(type=openapi.TYPE_STRING),
                             'schedule': openapi.Schema(type=openapi.TYPE_STRING),
+                            'contact_info': openapi.Schema(type=openapi.TYPE_STRING),
                         }
                     )
                 )
@@ -68,6 +69,9 @@ class EmployeeViewSet(viewsets.ViewSet):
                         'id': openapi.Schema(type=openapi.TYPE_INTEGER),
                         'name': openapi.Schema(type=openapi.TYPE_STRING),
                         'position': openapi.Schema(type=openapi.TYPE_STRING),
+                        'department': openapi.Schema(type=openapi.TYPE_STRING),
+                        'schedule': openapi.Schema(type=openapi.TYPE_STRING),
+                        'contact_info': openapi.Schema(type=openapi.TYPE_STRING),
                     }
                 )
             ),
@@ -79,5 +83,117 @@ class EmployeeViewSet(viewsets.ViewSet):
     def create(self, request):
         """
         POST /api/employees/
+        """
+        pass
+
+    @swagger_auto_schema(
+        operation_summary="Получение информации о конкретном сотруднике",
+        operation_description="Возвращает детальную информацию о сотруднике по его ID",
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_PATH,
+                description="ID сотрудника",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+        ],
+        responses={
+            200: openapi.Response(
+                description="Успешное получение данных",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'name': openapi.Schema(type=openapi.TYPE_STRING),
+                        'position': openapi.Schema(type=openapi.TYPE_STRING),
+                        'department': openapi.Schema(type=openapi.TYPE_STRING),
+                        'schedule': openapi.Schema(type=openapi.TYPE_STRING),
+                        'contact_info': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            ),
+            404: "Сотрудник не найден",
+            401: "Неавторизованный доступ",
+            403: "Недостаточно прав"
+        }
+    )
+    def retrieve(self, request, pk=None):
+        """
+        GET /api/employees/{id}/
+        """
+        pass
+
+    @swagger_auto_schema(
+        operation_summary="Обновление информации о сотруднике",
+        operation_description="Обновляет информацию о существующем сотруднике",
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_PATH,
+                description="ID сотрудника",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+        ],
+        request_body=openapi.Schema(
+            type=openapi.TYPE_OBJECT,
+            properties={
+                'name': openapi.Schema(type=openapi.TYPE_STRING),
+                'position': openapi.Schema(type=openapi.TYPE_STRING),
+                'department': openapi.Schema(type=openapi.TYPE_STRING),
+                'schedule': openapi.Schema(type=openapi.TYPE_STRING),
+                'contact_info': openapi.Schema(type=openapi.TYPE_STRING),
+            }
+        ),
+        responses={
+            200: openapi.Response(
+                description="Данные сотрудника успешно обновлены",
+                schema=openapi.Schema(
+                    type=openapi.TYPE_OBJECT,
+                    properties={
+                        'id': openapi.Schema(type=openapi.TYPE_INTEGER),
+                        'name': openapi.Schema(type=openapi.TYPE_STRING),
+                        'position': openapi.Schema(type=openapi.TYPE_STRING),
+                        'department': openapi.Schema(type=openapi.TYPE_STRING),
+                        'schedule': openapi.Schema(type=openapi.TYPE_STRING),
+                        'contact_info': openapi.Schema(type=openapi.TYPE_STRING),
+                    }
+                )
+            ),
+            400: "Неверные входные данные",
+            404: "Сотрудник не найден",
+            401: "Неавторизованный доступ",
+            403: "Недостаточно прав"
+        }
+    )
+    def update(self, request, pk=None):
+        """
+        PUT /api/employees/{id}/
+        """
+        pass
+
+    @swagger_auto_schema(
+        operation_summary="Удаление сотрудника",
+        operation_description="Удаляет сотрудника из системы",
+        manual_parameters=[
+            openapi.Parameter(
+                'id',
+                openapi.IN_PATH,
+                description="ID сотрудника",
+                type=openapi.TYPE_INTEGER,
+                required=True
+            ),
+        ],
+        responses={
+            204: "Сотрудник успешно удален",
+            404: "Сотрудник не найден",
+            401: "Неавторизованный доступ",
+            403: "Недостаточно прав"
+        }
+    )
+    def destroy(self, request, pk=None):
+        """
+        DELETE /api/employees/{id}/
         """
         pass
