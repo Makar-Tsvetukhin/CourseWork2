@@ -19,6 +19,7 @@ from django.urls import path, include
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
+from django.views.generic import TemplateView
 
 schema_view = get_schema_view(
    openapi.Info(
@@ -49,4 +50,6 @@ urlpatterns = [
     path('api/', include('events.urls')),
     path('api/', include('users.urls')),
     path('api/', include('stat_information.urls')),
+
+    path('', TemplateView.as_view(template_name='index.html'), name='home'),
 ]

@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Главная - Управление зоопарком{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Система управления зоопарком</h1>
+
+<div class="row">
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Животные</h5>
+                <p class="card-text">Управление данными о животных зоопарка</p>
+                <a href="/animals" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Сотрудники</h5>
+                <p class="card-text">Управление данными о сотрудниках</p>
+                <a href="/employees" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Мероприятия</h5>
+                <p class="card-text">Управление мероприятиями зоопарка</p>
+                <a href="/events" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6 col-lg-3 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Статистика</h5>
+                <p class="card-text">Просмотр статистики посещений</p>
+                <a href="/statistics" class="btn btn-primary">Перейти</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
