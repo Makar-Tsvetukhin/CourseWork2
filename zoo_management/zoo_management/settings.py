@@ -82,8 +82,14 @@ WSGI_APPLICATION = 'zoo_management.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'mssql',
+        'NAME': 'Zoo_db',
+        'HOST': 'DESKTOP-L8A1O1P\\SQLEXPRESS',
+        'OPTIONS': {
+            'driver': 'ODBC Driver 17 for SQL Server',
+            'unicode_results': True,
+        },
+        'Trusted_Connection': 'yes',
     }
 }
 
