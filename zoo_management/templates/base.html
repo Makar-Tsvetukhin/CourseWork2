@@ -15,7 +15,8 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
+                <ul class="navbar-nav me-auto">
+                    {% if user.is_authenticated %}
                     <li class="nav-item">
                         <a class="nav-link" href="/animals">Животные</a>
                     </li>
@@ -28,6 +29,24 @@
                     <li class="nav-item">
                         <a class="nav-link" href="/statistics">Статистика</a>
                     </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <span class="nav-link">{{ user.username }}</span>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'auth-logout' %}">Выход</a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'auth-login' %}">Вход</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'auth-register' %}">Регистрация</a>
+                    </li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
