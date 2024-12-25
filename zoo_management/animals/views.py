@@ -2,6 +2,15 @@ from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
+from rest_framework import viewsets
+from .tasks import notify_animal_health_check
+from .models import Animal
+
+class AnimalViewSet(viewsets.ViewSet):
+    def create(self, request):
+        animal = Animal.objects.create(**request.data)
+        notify_animal_health_check.delay(animal.id)
+        return Response({"message": "Animal created."})
 
 class AnimalViewSet(viewsets.ViewSet):
     

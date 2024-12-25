@@ -2,7 +2,13 @@ from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
+from rest_framework import viewsets
+from .tasks import generate_daily_statistics
 
+class StatisticsViewSet(viewsets.ViewSet):
+    def list(self, request):
+        generate_daily_statistics.delay()
+        return Response({"message": "Statistics generation triggered."})
 class StatisticsViewSet(viewsets.ViewSet):
     
     @swagger_auto_schema(

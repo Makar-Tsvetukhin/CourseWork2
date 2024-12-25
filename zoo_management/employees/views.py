@@ -3,6 +3,15 @@ from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
+from rest_framework import viewsets
+from celery import shared_task
+from .models import Employee
+
+@shared_task
+def notify_employee_creation(employee_id):
+    employee = Employee.objects.get(id=employee_id)
+    print(f"Notification: Employee {employee.name} was created in department {employee.department}.")
+    
 
 class EmployeeViewSet(viewsets.ViewSet):
     

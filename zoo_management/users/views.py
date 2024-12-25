@@ -8,6 +8,13 @@ from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.permissions import AllowAny
 from django.contrib.auth.hashers import make_password, check_password
+from django.shortcuts import render, redirect
+from django.contrib.auth import login, logout
+from django.views import View
+from django.contrib import messages
+from .models import CustomUser
+from django.urls import reverse
+from django.contrib.auth.hashers import make_password
 
 User = get_user_model()
 
@@ -128,7 +135,77 @@ class AuthViewSet(viewsets.ViewSet):
                 status=status.HTTP_401_UNAUTHORIZED
             )
         
-        
+
+
+
+class RegisterView(View):
+    template_name = 'auth/register.html'
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('/')
+        return render(request, self.template_name)
+
+    def post(self, request):
+        username = request.POST.get('username')
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        password2 = request.POST.get('password2')
+        first_name = request.POST.get('first_name')
+        last_name = request.POST.get('last_name')
+
+        if password != password2:
+            return render(request, self.template_name, {'error': 'Пароли не совпадают'})
+
+        if CustomUser.objects.filter(email=email).exists():
+            return render(request, self.template_name, {'error': 'Email уже используется'})
+
+        if CustomUser.objects.filter(username=username).exists():
+            return render(request, self.template_name, {'error': 'Имя пользователя уже занято'})
+
+        try:
+            user = CustomUser.objects.create(
+                username=username,
+                email=email,
+                password=make_password(password),
+                first_name=first_name,
+                last_name=last_name,
+                role='visitor'
+            )
+            login(request, user)
+            return redirect('/')
+        except Exception as e:
+            return render(request, self.template_name, {'error': str(e)})
+
+class LoginView(View):
+    template_name = 'auth/login.html'
+
+    def get(self, request):
+        if request.user.is_authenticated:
+            return redirect('/')
+        return render(request, self.template_name)
+
+    def post(self, request):
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+
+        try:
+            user = CustomUser.objects.get(email=email)
+            if user.check_password(password):
+                login(request, user)
+                return redirect('/')
+            else:
+                return render(request, self.template_name, {'error': 'Неверный пароль'})
+        except CustomUser.DoesNotExist:
+            return render(request, self.template_name, {'error': 'Пользователь не найден'})
+
+class LogoutView(View):
+    def get(self, request):
+        logout(request)
+        return redirect('/')
+
+
+
 class UserViewSet(viewsets.ViewSet):
     
     @swagger_auto_schema(

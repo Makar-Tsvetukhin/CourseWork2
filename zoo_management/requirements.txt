@@ -6,3 +6,5 @@ pyodbc==4.0.39
 djangorestframework-simplejwt==5.3.1  
 django-cors-headers==4.3.1            
 passlib==1.7.4
+celery==5.3.0
+redis==5.0.0

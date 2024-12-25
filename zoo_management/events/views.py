@@ -2,7 +2,15 @@ from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
+from rest_framework import viewsets
+from .tasks import notify_event_creation
+from .models import Event
 
+class EventViewSet(viewsets.ViewSet):
+    def create(self, request):
+        event = Event.objects.create(**request.data)
+        notify_event_creation.delay(event.id)
+        return Response({"message": "Event created."})
 class EventViewSet(viewsets.ViewSet):
     
     @swagger_auto_schema(
