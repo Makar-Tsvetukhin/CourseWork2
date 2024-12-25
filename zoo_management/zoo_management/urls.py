@@ -52,5 +52,8 @@ urlpatterns = [
     path('api/', include('stat_information.urls')),
 
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
-    path('animals/', include('animals.urls'))
+    path('animals/', include('animals.urls')),
+    path('employees/', include('employees.urls')),
+    path('events/', include('events.urls')),
+    path('statistics/', include('stat_information.urls')),
 ]

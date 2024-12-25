@@ -1,14 +1,19 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .tasks import generate_daily_statistics
+from .models import Statistics
+from .serializers import StatisticsSerializer
+from datetime import datetime
 
 class StatisticsViewSet(viewsets.ViewSet):
     def list(self, request):
         generate_daily_statistics.delay()
         return Response({"message": "Statistics generation triggered."})
+    
 class StatisticsViewSet(viewsets.ViewSet):
     
     @swagger_auto_schema(
@@ -54,10 +59,33 @@ class StatisticsViewSet(viewsets.ViewSet):
         }
     )
     def list(self, request):
-        """
-        GET /api/stat_information/
-        """
-        pass
+        start_date = request.query_params.get('start_date')
+        end_date = request.query_params.get('end_date')
+        
+        queryset = Statistics.objects.all()
+        
+        if start_date:
+            try:
+                start_date = datetime.strptime(start_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__gte=start_date)
+            except ValueError:
+                return Response(
+                    {"error": "Invalid start_date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+                
+        if end_date:
+            try:
+                end_date = datetime.strptime(end_date, '%Y-%m-%d').date()
+                queryset = queryset.filter(date__lte=end_date)
+            except ValueError:
+                return Response(
+                    {"error": "Invalid end_date format. Use YYYY-MM-DD"},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+
+        serializer = StatisticsSerializer(queryset, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Добавление статистических данных",
@@ -90,11 +118,13 @@ class StatisticsViewSet(viewsets.ViewSet):
         }
     )
     def create(self, request):
-        """
-        POST /api/stat_information/
-        """
-        pass
-
+        serializer = StatisticsSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            generate_daily_statistics.delay()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     @swagger_auto_schema(
         operation_summary="Получение статистики за конкретную дату",
         operation_description="Возвращает статистические данные по указанному ID",
@@ -126,10 +156,9 @@ class StatisticsViewSet(viewsets.ViewSet):
         }
     )
     def retrieve(self, request, pk=None):
-        """
-        GET /api/stat_information/{id}/
-        """
-        pass
+        statistic = get_object_or_404(Statistics, pk=pk)
+        serializer = StatisticsSerializer(statistic)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Обновление статистических данных",
@@ -171,10 +200,12 @@ class StatisticsViewSet(viewsets.ViewSet):
         }
     )
     def update(self, request, pk=None):
-        """
-        PUT /api/stat_information/{id}/
-        """
-        pass
+        statistic = get_object_or_404(Statistics, pk=pk)
+        serializer = StatisticsSerializer(statistic, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Удаление записи статистики",
@@ -196,7 +227,6 @@ class StatisticsViewSet(viewsets.ViewSet):
         }
     )
     def destroy(self, request, pk=None):
-        """
-        DELETE /api/stat_information/{id}/
-        """
-        pass
+        statistic = get_object_or_404(Statistics, pk=pk)
+        statistic.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

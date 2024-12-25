@@ -1,10 +1,13 @@
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
+from django.shortcuts import get_object_or_404
 from rest_framework.response import Response
 from rest_framework import viewsets
 from .tasks import notify_event_creation
 from .models import Event
+from .serializers import EventSerializer
+from .tasks import notify_event_creation
 
 class EventViewSet(viewsets.ViewSet):
     def create(self, request):
@@ -38,10 +41,9 @@ class EventViewSet(viewsets.ViewSet):
         }
     )
     def list(self, request):
-        """
-        GET /api/events/
-        """
-        pass
+        events = Event.objects.all()
+        serializer = EventSerializer(events, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Создание нового мероприятия",
@@ -74,10 +76,12 @@ class EventViewSet(viewsets.ViewSet):
         }
     )
     def create(self, request):
-        """
-        POST /api/events/
-        """
-        pass
+        serializer = EventSerializer(data=request.data)
+        if serializer.is_valid():
+            event = serializer.save()
+            notify_event_creation.delay(event.id)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Получение информации о конкретном мероприятии",
@@ -110,10 +114,10 @@ class EventViewSet(viewsets.ViewSet):
         }
     )
     def retrieve(self, request, pk=None):
-        """
-        GET /api/events/{id}/
-        """
-        pass
+        event = get_object_or_404(Event, pk=pk)
+        serializer = EventSerializer(event)
+        return Response(serializer.data)
+
 
     @swagger_auto_schema(
         operation_summary="Обновление информации о мероприятии",
@@ -155,10 +159,12 @@ class EventViewSet(viewsets.ViewSet):
         }
     )
     def update(self, request, pk=None):
-        """
-        PUT /api/events/{id}/
-        """
-        pass
+        event = get_object_or_404(Event, pk=pk)
+        serializer = EventSerializer(event, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Удаление мероприятия",
@@ -180,7 +186,6 @@ class EventViewSet(viewsets.ViewSet):
         }
     )
     def destroy(self, request, pk=None):
-        """
-        DELETE /api/events/{id}/
-        """
-        pass
+        event = get_object_or_404(Event, pk=pk)
+        event.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

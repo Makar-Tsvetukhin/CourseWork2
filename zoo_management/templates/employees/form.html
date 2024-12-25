@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}{{ view.title }} сотрудника{% endblock %}
+
+{% block content %}
+<h1>{{ view.title }} сотрудника</h1>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="mb-3">
+        <label for="name" class="form-label">ФИО</label>
+        <input type="text" class="form-control" id="name" name="name" value="{{ form.instance.name }}">
+    </div>
+    <div class="mb-3">
+        <label for="position" class="form-label">Должность</label>
+        <input type="text" class="form-control" id="position" name="position" value="{{ form.instance.position }}">
+    </div>
+    <div class="mb-3">
+        <label for="department" class="form-label">Отдел</label>
+        <input type="text" class="form-control" id="department" name="department" value="{{ form.instance.department }}">
+    </div>
+    <div class="mb-3">
+        <label for="hire_date" class="form-label">Дата приема на работу</label>
+        <input type="date" class="form-control" id="hire_date" name="hire_date" value="{{ form.instance.hire_date|date:'Y-m-d' }}">
+    </div>
+    <div class="mb-3">
+        <label for="schedule" class="form-label">График работы</label>
+        <input type="text" class="form-control" id="schedule" name="schedule" value="{{ form.instance.schedule }}">
+    </div>
+    <div class="mb-3">
+        <label for="contact_info" class="form-label">Контактная информация</label>
+        <input type="text" class="form-control" id="contact_info" name="contact_info" value="{{ form.instance.contact_info }}">
+    </div>
+    <button type="submit" class="btn btn-primary">Сохранить</button>
+</form>
+{% endblock %}

@@ -1,11 +1,14 @@
 
-from rest_framework import viewsets
+from rest_framework import viewsets, status
 from drf_yasg.utils import swagger_auto_schema
+from django.shortcuts import get_object_or_404
 from drf_yasg import openapi
 from rest_framework.response import Response
 from rest_framework import viewsets
 from celery import shared_task
 from .models import Employee
+from .serializers import EmployeeSerializer
+from .tasks import notify_employee_creation
 
 @shared_task
 def notify_employee_creation(employee_id):
@@ -50,10 +53,10 @@ class EmployeeViewSet(viewsets.ViewSet):
         }
     )
     def list(self, request):
-        """
-        GET /api/employees/
-        """
-        pass
+        department = request.query_params.get('department')
+        employees = Employee.objects.filter(department=department) if department else Employee.objects.all()
+        serializer = EmployeeSerializer(employees, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Создание нового сотрудника",
@@ -90,10 +93,12 @@ class EmployeeViewSet(viewsets.ViewSet):
         }
     )
     def create(self, request):
-        """
-        POST /api/employees/
-        """
-        pass
+        serializer = EmployeeSerializer(data=request.data)
+        if serializer.is_valid():
+            employee = serializer.save()
+            notify_employee_creation.delay(employee.id)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Получение информации о конкретном сотруднике",
@@ -128,10 +133,9 @@ class EmployeeViewSet(viewsets.ViewSet):
         }
     )
     def retrieve(self, request, pk=None):
-        """
-        GET /api/employees/{id}/
-        """
-        pass
+        employee = get_object_or_404(Employee, pk=pk)
+        serializer = EmployeeSerializer(employee)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Обновление информации о сотруднике",
@@ -177,10 +181,12 @@ class EmployeeViewSet(viewsets.ViewSet):
         }
     )
     def update(self, request, pk=None):
-        """
-        PUT /api/employees/{id}/
-        """
-        pass
+        employee = get_object_or_404(Employee, pk=pk)
+        serializer = EmployeeSerializer(employee, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Удаление сотрудника",
@@ -202,7 +208,6 @@ class EmployeeViewSet(viewsets.ViewSet):
         }
     )
     def destroy(self, request, pk=None):
-        """
-        DELETE /api/employees/{id}/
-        """
-        pass
+        employee = get_object_or_404(Employee, pk=pk)
+        employee.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
