@@ -2,9 +2,12 @@ from rest_framework import viewsets
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from rest_framework.response import Response
-from rest_framework import viewsets
+from rest_framework import viewsets, status
+from django.shortcuts import get_object_or_404
 from .tasks import notify_animal_health_check
 from .models import Animal
+from .serializers import AnimalSerializer
+from .tasks import notify_animal_health_check
 
 class AnimalViewSet(viewsets.ViewSet):
     def create(self, request):
@@ -48,10 +51,10 @@ class AnimalViewSet(viewsets.ViewSet):
         }
     )
     def list(self, request):
-        """
-        GET /api/animals/
-        """
-        pass
+        species = request.query_params.get('species')
+        animals = Animal.objects.filter(species=species) if species else Animal.objects.all()
+        serializer = AnimalSerializer(animals, many=True)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Создание новой записи о животном",
@@ -86,11 +89,13 @@ class AnimalViewSet(viewsets.ViewSet):
         }
     )
     def create(self, request):
-        """
-        POST /api/animals/
-        """
-        pass
-
+        serializer = AnimalSerializer(data=request.data)
+        if serializer.is_valid():
+            animal = serializer.save()
+            notify_animal_health_check.delay(animal.id)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
     @swagger_auto_schema(
         operation_summary="Получение информации о конкретном животном",
         operation_description="Возвращает детальную информацию о животном по его ID",
@@ -123,10 +128,9 @@ class AnimalViewSet(viewsets.ViewSet):
         }
     )
     def retrieve(self, request, pk=None):
-        """
-        GET /api/animals/{id}/
-        """
-        pass
+        animal = get_object_or_404(Animal, pk=pk)
+        serializer = AnimalSerializer(animal)
+        return Response(serializer.data)
 
     @swagger_auto_schema(
         operation_summary="Обновление информации о животном",
@@ -170,10 +174,12 @@ class AnimalViewSet(viewsets.ViewSet):
         }
     )
     def update(self, request, pk=None):
-        """
-        PUT /api/animals/{id}/
-        """
-        pass
+        animal = get_object_or_404(Animal, pk=pk)
+        serializer = AnimalSerializer(animal, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(
         operation_summary="Удаление животного",
@@ -195,7 +201,6 @@ class AnimalViewSet(viewsets.ViewSet):
         }
     )
     def destroy(self, request, pk=None):
-        """
-        DELETE /api/animals/{id}/
-        """
-        pass
+        animal = get_object_or_404(Animal, pk=pk)
+        animal.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)

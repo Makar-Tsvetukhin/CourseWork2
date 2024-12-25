@@ -11,6 +11,7 @@ class EventViewSet(viewsets.ViewSet):
         event = Event.objects.create(**request.data)
         notify_event_creation.delay(event.id)
         return Response({"message": "Event created."})
+    
 class EventViewSet(viewsets.ViewSet):
     
     @swagger_auto_schema(

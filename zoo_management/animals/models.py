@@ -5,7 +5,7 @@ class Animal(models.Model):
     species = models.CharField(max_length=100, verbose_name="Вид")
     age = models.IntegerField(verbose_name="Возраст")
     health_status = models.CharField(max_length=50, verbose_name="Состояние здоровья")
-    arrival_date = models.DateField(verbose_name="Дата поступления")
+    arrival_date = models.DateField(auto_now_add=True, verbose_name="Дата поступления")
     diet = models.TextField(verbose_name="Рацион питания")
     location = models.CharField(max_length=100, verbose_name="Расположение в зоопарке")
     

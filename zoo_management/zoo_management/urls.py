@@ -52,4 +52,5 @@ urlpatterns = [
     path('api/', include('stat_information.urls')),
 
     path('', TemplateView.as_view(template_name='index.html'), name='home'),
+    path('animals/', include('animals.urls'))
 ]
